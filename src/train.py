@@ -26,6 +26,12 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 
+# mlflow 3.x moved the ./mlruns file-store backend into maintenance mode and
+# raises unless you opt in. This pipeline tracks to a file store by design
+# (uploaded as a CI artifact), so re-enable it. Override via MLFLOW_TRACKING_URI
+# to point at a real MLflow server.
+os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
+
 OUT = Path("model")
 PARAMS = {"n_estimators": 150, "max_depth": 3, "learning_rate": 0.1, "random_state": 42}
 PSI_BINS = 10

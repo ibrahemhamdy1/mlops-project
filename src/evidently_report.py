@@ -10,7 +10,6 @@ this produces the human-readable investigation report.
 import argparse
 import json
 import sys
-from pathlib import Path
 
 import pandas as pd
 from evidently.metric_preset import DataDriftPreset
