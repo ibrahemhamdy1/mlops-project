@@ -88,7 +88,7 @@ def predict(req: PredictRequest) -> PredictResponse:
     LATENCY.observe(time.perf_counter() - start)
 
     preds = (proba >= 0.5).astype(int)
-    for p, pr in zip(preds, proba):
+    for p, pr in zip(preds, proba, strict=False):
         PREDICTIONS.labels(predicted_class=str(int(p))).inc()
         CONFIDENCE.observe(float(pr))
 
