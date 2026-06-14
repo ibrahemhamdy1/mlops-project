@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/ibrahimhamdyramadan/Downloads/mlops-devsecops-pipeline/mlruns/221243680321148203/abf70ab1f85348b092089023ff888374/artifacts
+end_time: 1781461905616
+entry_point_name: ''
+experiment_id: '221243680321148203'
+lifecycle_stage: active
+run_id: abf70ab1f85348b092089023ff888374
+run_name: respected-flea-668
+run_uuid: abf70ab1f85348b092089023ff888374
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1781461893380
+status: 3
+tags: []
+user_id: ibrahimhamdyramadan

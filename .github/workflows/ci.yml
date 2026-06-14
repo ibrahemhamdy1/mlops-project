@@ -1,0 +1,76 @@
+# =============================================================
+# CI — runs on every pull request and push.
+# DevSecOps shift-left: lint, tests, secrets, SAST, dependency
+# audit, and IaC scanning BEFORE anything is built or deployed.
+# =============================================================
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check src tests
+      - name: Unit + smoke tests (includes a fast real training run)
+        run: pytest -q
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks scans history
+      - name: Gitleaks (leaked credentials)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bandit (Python SAST)
+        run: |
+          pip install bandit
+          bandit -r src -ll   # fail on medium+ severity
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pip-audit (known-vulnerable dependencies)
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+
+  iac-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy config scan (Dockerfile + K8s manifests)
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: config
+          scan-ref: .
+          exit-code: "1"
+          severity: CRITICAL,HIGH

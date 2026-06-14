@@ -1,0 +1,70 @@
+# ==============================================================
+# Drift monitor — the loop-closer.
+# Scheduled PSI check of current inputs vs the training-time
+# reference distribution. Drift -> repository_dispatch event
+# -> train-deploy workflow retrains automatically.
+# (Promotion still requires the human gate in train-deploy.)
+# ==============================================================
+name: drift-monitor
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # daily
+  workflow_dispatch:
+    inputs:
+      simulate_drift:
+        description: "Force a drift alert (demo)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # needed by gh api dispatch
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt
+
+      - name: Fetch reference stats from latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p model
+          gh release download --pattern reference_stats.json --dir model
+          gh release download --pattern reference_data.csv --dir model
+
+      - name: PSI drift check
+        id: psi
+        continue-on-error: true
+        run: |
+          ARGS=""
+          if [ "${{ inputs.simulate_drift }}" = "true" ]; then ARGS="--simulate-drift"; fi
+          python src/drift_check.py --reference model/reference_stats.json $ARGS
+
+      - name: Evidently drift report (human-readable investigation)
+        if: always()
+        run: |
+          ARGS=""
+          if [ "${{ inputs.simulate_drift }}" = "true" ]; then ARGS="--simulate-drift"; fi
+          python src/evidently_report.py --reference model/reference_data.csv $ARGS
+
+      - name: Upload Evidently report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-report
+          path: drift_report.html
+          retention-days: 14
+
+      - name: Trigger retraining on drift
+        if: steps.psi.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Drift detected — dispatching retraining pipeline"
+          gh api repos/${{ github.repository }}/dispatches \
+            -f event_type=drift-detected

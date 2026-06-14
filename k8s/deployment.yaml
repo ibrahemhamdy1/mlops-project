@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-inference
+  labels: { app: ml-inference }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: ml-inference }
+  template:
+    metadata:
+      labels: { app: ml-inference }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: ml-inference
+          image: ghcr.io/OWNER/REPO:latest   # replaced by CI with the digest
+          ports:
+            - containerPort: 8000
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits:   { cpu: "1",  memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          startupProbe:
+            httpGet: { path: /readyz, port: 8000 }
+            failureThreshold: 30
+            periodSeconds: 2
+          readinessProbe:
+            httpGet: { path: /readyz, port: 8000 }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8000 }
+            periodSeconds: 10
+          lifecycle:
+            preStop:
+              exec: { command: ["sleep", "8"] }  # let LB stop sending traffic first
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ml-inference
+spec:
+  selector: { app: ml-inference }
+  ports:
+    - port: 80
+      targetPort: 8000
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ml-inference
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app: ml-inference }

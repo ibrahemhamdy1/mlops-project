@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1781461905577
+current_stage: None
+description: null
+last_updated_timestamp: 1781461905577
+name: breast-cancer-classifier
+run_id: abf70ab1f85348b092089023ff888374
+run_link: null
+source: file:///Users/ibrahimhamdyramadan/Downloads/mlops-devsecops-pipeline/mlruns/221243680321148203/abf70ab1f85348b092089023ff888374/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///Users/ibrahimhamdyramadan/Downloads/mlops-devsecops-pipeline/mlruns/221243680321148203/abf70ab1f85348b092089023ff888374/artifacts/model
+user_id: null
+version: 2
