@@ -117,7 +117,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Trivy image scan — fail on CRITICAL
-        uses: aquasecurity/trivy-action@v0.29.0
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           image-ref: ${{ env.IMAGE }}:${{ github.sha }}
           exit-code: "1"

@@ -3,3 +3,10 @@ __pycache__/
 model/*.json
 .venv/
 .pytest_cache/
+
+# generated MLflow tracking store (machine-specific paths; uploaded as CI artifact instead)
+mlruns/
+.venv312/
+drift_report.html
+.dvc/
+dvc.lock
