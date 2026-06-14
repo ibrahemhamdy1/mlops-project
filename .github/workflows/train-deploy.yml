@@ -117,12 +117,12 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Trivy image scan — fail on CRITICAL
-        uses: aquasecurity/trivy-action@0.29.0
-        with:
-          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-          exit-code: "1"
-          severity: CRITICAL
-          ignore-unfixed: true
+        # Official Trivy image (deterministic) instead of trivy-action's flaky
+        # self-install. Mounts the docker socket to scan the locally-built image.
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.65.0 image --exit-code 1 --severity CRITICAL \
+            --ignore-unfixed ${{ env.IMAGE }}:${{ github.sha }}
 
       - name: Generate SBOM (supply-chain inventory)
         uses: anchore/sbom-action@v0

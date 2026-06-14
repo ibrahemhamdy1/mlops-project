@@ -1,6 +1,0 @@
-artifact_location: file:///Users/ibrahimhamdyramadan/Downloads/mlops-devsecops-pipeline/mlruns/221243680321148203
-creation_time: 1781461488002
-experiment_id: '221243680321148203'
-last_update_time: 1781461488002
-lifecycle_stage: active
-name: breast-cancer-classifier

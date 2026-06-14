@@ -68,9 +68,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Trivy config scan (Dockerfile + K8s manifests)
-        uses: aquasecurity/trivy-action@0.29.0
-        with:
-          scan-type: config
-          scan-ref: .
-          exit-code: "1"
-          severity: CRITICAL,HIGH
+        # Run Trivy via its official image instead of trivy-action: the action
+        # self-installs the trivy binary at runtime and that download is flaky
+        # on the runner. The pinned image is deterministic.
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work aquasec/trivy:0.65.0 \
+            config --severity CRITICAL,HIGH --exit-code 1 .

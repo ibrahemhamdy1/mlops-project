@@ -5,7 +5,7 @@ what performance, what limits" for auditors and future engineers.
 """
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -13,7 +13,7 @@ def main() -> int:
     metrics = json.loads(Path("model/metrics.json").read_text())
     card = f"""# Model Card — breast-cancer-classifier
 
-**Generated:** {datetime.now(timezone.utc).isoformat(timespec="seconds")}
+**Generated:** {datetime.now(UTC).isoformat(timespec="seconds")}
 
 ## Lineage
 | | |
